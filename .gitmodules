@@ -1,0 +1,6 @@
+[submodule "libraries"]
+	path = libraries
+	url = https://github.com/danielesteban/ArduinoLib.git
+[submodule "hardware"]
+	path = hardware
+	url = git://github.com/damellis/attiny.git
