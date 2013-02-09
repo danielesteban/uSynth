@@ -1,12 +1,12 @@
-#define dipSwitchPin (2)
-#define dipSwitchNum (6)
-#define pot1Pin (0)
-#define pot2Pin (1)
+#define dipSwitchPin (5)
+#define dipSwitchNum (5)
+#define pot1Pin (7)
+#define pot2Pin (6)
 #define srRegister (DDRB)
 #define srPort (PORTB)
-#define lPin (2)
-#define cPin (1)
-#define dPin (0)
+#define lPin (1) //Attiny84 pin 9
+#define cPin (2) //Attiny84 pin 8 
+#define dPin (0) //Attiny84 pin 10
 
 //#define DEBUG
 #ifdef DEBUG
@@ -126,7 +126,7 @@ void setup() {
 	analogInputs.setup(pot1Pin);
 	analogInputs.setup(pot2Pin);
 
-	for(byte x=0; x<dipSwitchNum; x++) buttons.setup(dipSwitchPin + x);
+	for(byte x=0; x<dipSwitchNum; x++) buttons.setup(dipSwitchPin - x);
 
 	srRegister |= (1 << lPin);
 	srRegister |= (1 << cPin);
@@ -177,7 +177,7 @@ void onChange(byte pin, int read) {
 }
 
 void switchON(byte pin) {
-	pin -= dipSwitchPin;
+	pin = dipSwitchPin - pin;
 	switch(pin) {
 		default: //waves
 			waveOn |= (1 << pin);
@@ -189,7 +189,7 @@ void switchON(byte pin) {
 }
 
 void switchOFF(byte pin) {
-	pin -= dipSwitchPin;
+	pin = dipSwitchPin - pin;
 	switch(pin) {
 		default:  //waves
 			waveOn &= ~(1 << pin);
