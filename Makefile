@@ -11,6 +11,7 @@ ARDUINO_VAR_PATH = ./hardware/attiny/variants
 ISP_PROG = -c stk500v1
 ISP_PORT = $(ARDUINO_PORT)
 AVRDUDE_ARD_BAUDRATE = $(MONITOR_BAUDRATE)
+AVRDUDE_CONF = $(AVR_TOOLS_DIR)/etc/avrdude.conf -b $(AVRDUDE_ARD_BAUDRATE)
 
 ARDUINO_LIBS = SoftwareSerial AnalogInputs Buttons TinyWave
 
