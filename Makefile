@@ -12,6 +12,6 @@ ISP_PROG = -c stk500v1
 ISP_PORT = $(ARDUINO_PORT)
 AVRDUDE_ARD_BAUDRATE = $(MONITOR_BAUDRATE)
 
-ARDUINO_LIBS = SoftwareSerial AnalogInputs Buttons Wave
+ARDUINO_LIBS = SoftwareSerial AnalogInputs Buttons TinyWave
 
 include ./libraries/Makefile/arduino-mk/Arduino.mk
