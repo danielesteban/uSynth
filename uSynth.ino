@@ -2,6 +2,7 @@
 #define dipSwitchNum (5)
 #define pot1Pin (7)
 #define pot2Pin (6)
+#define photoResistorPin (0)
 #define DacRegister (DDRB)
 #define DacPort (PORTB)
 #define DacLatchPin (1) //Attiny84 pin 9
@@ -26,27 +27,35 @@ const byte numSynths = 2,
 
 #define audioInterrupt (TIM1_COMPA_vect)
 
-byte synthOn = 0, 
-	chainSawTickCount = 0;
-
 const byte synth1NumWaves = 4,
 	synth2NumWaves = 2,
 	synth1WaveNoteOffset[synth1NumWaves] = {0, 7, 12, 16},
 	synth2WaveNoteOffset[synth2NumWaves] = {0, 12};
+
+byte synthOn = 0, 
+	chainSawTickCount = 0;
+
+bool photoResistorEnabled = 0,
+	photoResistorCalibrate = 1;
+
+unsigned int photoResistorMin = 0,
+	photoResistorMax = 1023,
+	photoResistorCalibrateCount = 0;
 
 Synth synths[numSynths] = {
 	Synth(sampleRate, synth1NumWaves, synth1WaveNoteOffset),
 	Synth(sampleRate, synth2NumWaves, synth2WaveNoteOffset)
 };
 
-void onChange(byte id, int read);
-AnalogInputs analogInputs(onChange, 0);
+void onChange(byte pin, int read);
+AnalogInputs analogInputs(onChange);
 
-void switchON(byte id);
-void switchOFF(byte id);
-Buttons buttons(switchOFF, switchON, 0);
+void switchON(byte pin);
+void switchOFF(byte pin);
+Buttons buttons(switchOFF, switchON);
 
 void setNote(byte synthId, int read);
+void photoResistor();
 
 void setup() {
 	#ifdef DEBUG
@@ -55,7 +64,7 @@ void setup() {
 		serial.begin(19200);
 	#endif
 
-	randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
+	//randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
 
 	for(byte x=0; x<dipSwitchNum; x++) buttons.setup(dipSwitchPin - x);
 
@@ -82,6 +91,7 @@ void setup() {
 void loop() {
 	analogInputs.read();
 	buttons.read();
+	photoResistor();
 }
 
 void setNote(byte synth, int read) {
@@ -101,13 +111,12 @@ void setDistortion(byte synth, int read) {
 }
 
 void onChange(byte pin, int read) {
-	const bool alt = !buttons.get(dipSwitchPin - 4)->status;
-	
 	if(!synthOn) return;
 	
+	const bool alt = !photoResistorEnabled && !buttons.get(dipSwitchPin - 4)->status;
 	bool sel;
 	byte synth;
-	
+
 	switch(pin) {
 		case pot1Pin:
 			if(synthOn & (1 << 0)) { //FIESTA
@@ -135,6 +144,30 @@ void onChange(byte pin, int read) {
 		if(sel) setChainsaw(synth, read);
 		else setNote(synth, read);
 	}
+}
+
+void photoResistor() {
+	int read = analogRead(photoResistorPin);
+	if(read < 400) { //photoResistor off
+		photoResistorEnabled = 0;
+		if(photoResistorCalibrate) {
+			photoResistorMin = 0;
+			photoResistorMax = 1023;
+		}
+		return;
+	}
+	if(photoResistorCalibrate) {
+		photoResistorCalibrateCount++;
+		photoResistorMax < read && (photoResistorMax = read);
+		photoResistorMin > read && (photoResistorMin = read);
+		photoResistorCalibrateCount == 1500 && (photoResistorCalibrateCount = photoResistorCalibrate = 0);
+		return;
+	}
+	photoResistorEnabled = 1;
+	read = map(constrain(read, photoResistorMin, photoResistorMax), photoResistorMin, photoResistorMax, 1023, 0);
+	byte synth = buttons.get(dipSwitchPin - 4)->status ? 0 : 1;
+	if(buttons.get(dipSwitchPin - (synth == 0 ? 2 : 3))->status) setChainsaw(synth, read);
+	else setNote(synth, read);
 }
 
 void switchON(byte pin) {
