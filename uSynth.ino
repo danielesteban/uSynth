@@ -38,8 +38,8 @@ byte synthOn = 0,
 bool photoResistorEnabled = 0,
 	photoResistorCalibrate = 1;
 
-unsigned int photoResistorMin = 0,
-	photoResistorMax = 1023,
+unsigned int photoResistorMin = 1023,
+	photoResistorMax = 0,
 	photoResistorCalibrateCount = 0;
 
 Synth synths[numSynths] = {
@@ -151,13 +151,14 @@ void photoResistor() {
 	if(read < 400) { //photoResistor off
 		photoResistorEnabled = 0;
 		if(photoResistorCalibrate) {
-			photoResistorMin = 0;
-			photoResistorMax = 1023;
+			photoResistorMin = 1023;
+			photoResistorMax = photoResistorCalibrateCount = 0;
 		}
 		return;
 	}
 	if(photoResistorCalibrate) {
 		photoResistorCalibrateCount++;
+		if(photoResistorCalibrateCount < 150) return;
 		photoResistorMax < read && (photoResistorMax = read);
 		photoResistorMin > read && (photoResistorMin = read);
 		photoResistorCalibrateCount == 1500 && (photoResistorCalibrateCount = photoResistorCalibrate = 0);
