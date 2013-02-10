@@ -5,13 +5,13 @@ The world's smallest/cheapest synthesizer
 
 **Parts List:**
 
-- Attiny84
-- 74HC595
+- 1x Attiny84
+- 1x 74HC595
 - 2x 10KΩ Potentiometers
-- Dip Switch
-- Photoresistor
-- 8 (+1) 10KΩ Resistors
-- 8 20KΩ Resistors
+- 1x Dip Switch
+- 1x Photoresistor
+- 9x 10KΩ Resistors
+- 8x 20KΩ Resistors
 - That's it!
 
 **Features:**
