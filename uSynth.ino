@@ -102,7 +102,7 @@ void setChainsaw(byte synth, int read) {
 }
 
 void setScale(byte synth, int read) {
-	synths[synth].setScale(map(read, 0, 1023, 0, Synth::numScales - 1), synths[synth].selectedRoot);
+	synths[synth].setScale(map(read, 0, 1023, 0, Synth::numScales - 2), synths[synth].selectedRoot);
 }
 
 void setRoot(byte synth, int read) {
