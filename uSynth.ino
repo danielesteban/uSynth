@@ -109,7 +109,6 @@ void setScale(byte synth, int read) {
 void onChange(byte pin, int read) {
 	if(!synthOn) return;
 	
-	const bool alt = !photoResistorEnabled && !(dipSwitchStatus & (1 << dipSwitchPin - 4));
 	bool sel;
 	byte synth;
 
@@ -134,7 +133,7 @@ void onChange(byte pin, int read) {
 	}
 
 	if(sel) {
-		if(alt) setScale(synth, read);
+		if(!photoResistorEnabled && !(dipSwitchStatus & (1 << dipSwitchPin - 4))) setScale(synth, read); //Alt Mode
 		else setChainsaw(synth, read);
 	} else setNote(synth, read);
 }
