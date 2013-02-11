@@ -69,10 +69,12 @@ void setup() {
 	analogInputs.setup(pot2Pin);
 	analogInputs.setup(photoResistorPin, photoResistorOnChange);
 
-	randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
-
 	//Set random scale & root on every init.
-	for(x=0; x<numSynths; x++) synths[x].setScale(random(0, Synth::numScales), random(0, Synth::numNotes));
+	randomSeed(analogRead(pot1Pin) + analogRead(pot2Pin)); //this should be an unused pin.. but there are none left ;P
+	const byte scale = random(0, Synth::numScales),
+		root = random(0, Synth::numNotes);
+	
+	for(x=0; x<numSynths; x++) synths[x].setScale(scale, root);
 
 	DacRegister |= (1 << DacLatchPin);
 	DacRegister |= (1 << DacClockPin);
