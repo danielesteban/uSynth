@@ -102,7 +102,11 @@ void setChainsaw(byte synth, int read) {
 }
 
 void setScale(byte synth, int read) {
-	synths[synth].setScale(map(read, 0, 1023, 0, Synth::numScales - 1));
+	synths[synth].setScale(map(read, 0, 1023, 0, Synth::numScales - 1), synths[synth].selectedRoot);
+}
+
+void setRoot(byte synth, int read) {
+	synths[synth].setScale(synths[synth].selectedScale, map(read, 0, 1023, 0, 11));
 }
 
 void onChange(byte pin, int read) {
@@ -131,10 +135,13 @@ void onChange(byte pin, int read) {
 			}
 	}
 
-	if(sel) {
-		if(!photoResistorEnabled && !(dipSwitchStatus & (1 << dipSwitchPin - 4))) setScale(synth, read); //Alt Mode
-		else setChainsaw(synth, read);
-	} else setNote(synth, read);
+	if(!photoResistorEnabled && !(dipSwitchStatus & (1 << dipSwitchPin - 4))) { //Alt Mode
+		if(sel) setScale(synth, read);
+		else setRoot(synth, read);
+	} else {
+		if(sel) setChainsaw(synth, read);
+		else setNote(synth, read);
+	}
 }
 
 void photoResistorOnChange(byte pin, int read) {

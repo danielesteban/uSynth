@@ -17,8 +17,8 @@
 class Synth {
     public:
         Synth(unsigned int sampleRate, const byte numWaves, const byte waveNoteOffset[]);
-        void setScale(byte id, byte root = 0);
-        void setNote(byte nt, bool force = 0);
+        void setScale(byte id, byte root);
+        void setNote(byte nt);
         void setChainSaw(byte interval);
         void setDistortion(byte distortion);
         void chainSawTick();
@@ -27,6 +27,9 @@ class Synth {
         static const byte numNotes = 7,
             numOctaves = 7,
             numScales = 13;
+
+        byte selectedScale,
+            selectedRoot;
     private:
         TinyWave * _waves[4];
 
@@ -36,6 +39,9 @@ class Synth {
         byte _note,
             _chainSawInterval,
             _chainSawTime;
+            //_setScaleNote,
+            //_setScalePreview,
+            //_setScaleTime;
 
         bool _chainSaw;
 

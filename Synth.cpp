@@ -5,7 +5,7 @@
 
 #include "Synth.h"
 
-prog_uint16_t Synth::_frequencies[] PROGMEM = {8,9,9,10,10,11,12,12,13,14,15,15,16,17,18,19,21,22,23,24,26,28,29,31,33,35,37,39,41,44,46,49,52,55,58,62,65,69,73,78,82,87,92,98,104,110,117,123,131,139,147,156,165,175,185,196,208,220,233,247,262,277,294,311,330,349,370,392,415,440,466,494,523,554,587,622,659,698,740,784,831,880,932,988,1047,1109,1175,1245,1319,1397,1480,1568,1661,1760,1865,1976,2093,2217,2349,2489,2637,2794,2960,3136,3322,3520,3729,3951,4186,4435,4699,4978,5274,5588,5920,6272,6645,7040,7459,7902,8372,8870,9397,9956,10548,11175,11840,12544,13290,14080,14917,15804,16744};
+prog_uint16_t Synth::_frequencies[] PROGMEM = {33,35,37,39,41,44,46,49,52,55,58,62,65,69,73,78,82,87,92,98,104,110,117,123,131,139,147,156,165,175,185,196,208,220,233,247,262,277,294,311,330,349,370,392,415,440,466,494,523,554,587,622,659,698,740,784,831,880,932,988,1047,1109,1175,1245,1319,1397,1480,1568,1661,1760,1865,1976,2093,2217,2349,2489,2637,2794,2960,3136,3322,3520,3729,3951,4186,4435,4699,4978,5274,5588,5920,6272,6645,7040,7459,7902,8372,8870,9397,9956,10548,11175,11840,12544,13290,14080,14917,15804,16744};
 
 prog_uchar Synth::_scales[(Synth::numNotes - 1) * Synth::numScales] PROGMEM = {
     2, 1, 2, 2, 1, 2, // Aeolian
@@ -24,13 +24,17 @@ prog_uchar Synth::_scales[(Synth::numNotes - 1) * Synth::numScales] PROGMEM = {
 };
 
 Synth::Synth(unsigned int sampleRate, const byte numWaves, const byte waveNoteOffset[]) : _numWaves(numWaves), _waveNoteOffset(waveNoteOffset) {
-	_chainSawTime = _chainSaw = 0;
-	_chainSawInterval = _note = 255;
-	setScale(0);
+	_chainSawTime = _chainSaw = selectedRoot = 0;
+	_chainSawInterval = /* _setScaleTime = _setScaleNote = */ _note = selectedScale = selectedRoot = 255;
+	setScale(0, 0);
 	for(byte x=0; x<_numWaves; x++) _waves[x] = new TinyWave(sampleRate);
 }
 
 void Synth::setScale(byte id, byte root) {
+	if(selectedScale == id && selectedRoot == root) return;
+	selectedScale = id;
+	selectedRoot = root;
+
 	const byte offset = (numNotes - 1) * id;
 	byte octave, nt,
 		n[numNotes],
@@ -44,12 +48,18 @@ void Synth::setScale(byte id, byte root) {
 			c++;
 		}
 	}
-	if(_note != 255) setNote(_note, 1);
+	//_setScaleTime != 255 && (_note = _setScaleNote);
+	//_setScaleNote = _note;
+	//_setScalePreview = _note != 255 ? (_note >= numNotes ? _note - numNotes : _note) : numNotes;
+	//setNote(_setScalePreview);
+	//_setScaleTime = 0;
+	if(_note != 255) setNote(_note);
 }
 
-void Synth::setNote(byte nt, bool force) {
-	if(!force && _note == nt) return;
+void Synth::setNote(byte nt) {
+	if(_note == nt) return;
 	_note = nt;
+	//_setScaleTime = 255;
 	if(nt == 255) return;
 	for(byte x=0; x<_numWaves; x++) _waves[x]->setFrequency(pgm_read_word_near(_frequencies + (_scale[_note] + _waveNoteOffset[x])));
 }
@@ -60,6 +70,17 @@ void Synth::setChainSaw(byte interval) {
 }
 
 void Synth::chainSawTick() {
+	/*if(_setScaleTime != 255) {
+		_setScaleTime++;
+		if(_setScaleTime == 255) {
+			_setScalePreview++;
+			if(_setScalePreview == (_setScaleNote != 255 ? (_setScaleNote >= numNotes ? _setScaleNote : _setScaleNote + numNotes) : numNotes << 1)) setNote(_setScaleNote);
+			else {
+				setNote(_setScalePreview);
+				_setScaleTime = 0;
+			}
+		}
+	}*/
 	if(_chainSawInterval == 255 || _note == 255) return;
 	_chainSawTime++;
 	if(_chainSawTime >= _chainSawInterval) _chainSawTime = _chainSaw = 0;
