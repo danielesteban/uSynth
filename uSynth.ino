@@ -34,20 +34,21 @@ const byte synth1NumWaves = 4,
 	synth2WaveNoteOffset[synth2NumWaves] = {0, 12};
 
 byte synthOn = 0,
-	chainSawTickCount = 0;
+	chainSawTickCount = 0,
+	photoResistorCalibrateCount = 0;
 
 bool photoResistorEnabled = 0,
 	photoResistorCalibrate = 1;
 
 unsigned int photoResistorMin = 1023,
-	photoResistorMax = 0,
-	photoResistorCalibrateCount = 0;
+	photoResistorMax = 0;
 
 Synth synths[numSynths] = {
 	Synth(sampleRate, synth1NumWaves, synth1WaveNoteOffset),
 	Synth(sampleRate, synth2NumWaves, synth2WaveNoteOffset)
 };
 
+void photoResistorOnChange(byte pin, int read);
 void onChange(byte pin, int read);
 AnalogInputs analogInputs(onChange);
 
@@ -61,11 +62,12 @@ void setup() {
 		serial.begin(19200);
 	#endif
 
-	//randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
+	randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
 
 	for(byte x=0; x<dipSwitchNum; x++) dipSwitchPort |= (1 << dipSwitchPin - x); //Set Pullups
 	analogInputs.setup(pot1Pin);
 	analogInputs.setup(pot2Pin);
+	analogInputs.setup(photoResistorPin, photoResistorOnChange);
 
 	DacRegister |= (1 << DacLatchPin);
 	DacRegister |= (1 << DacClockPin);
@@ -90,11 +92,10 @@ void loop() {
 		else synthOn |= (1 << x);
 	}
 	analogInputs.read();
-	photoResistor();
 }
 
 void setNote(byte synth, int read) {
-	synths[synth].setNote(map(read, 0, 1023, 0, (Synth::numNotes * (Synth::numOctaves - 1)) - 1));
+	synths[synth].setNote(map(read, 0, 1023, 0, Synth::numNotes * (Synth::numOctaves - 2)));
 }
 
 void setChainsaw(byte synth, int read) {
@@ -103,10 +104,6 @@ void setChainsaw(byte synth, int read) {
 
 void setScale(byte synth, int read) {
 	synths[synth].setScale(map(read, 0, 1023, 0, Synth::numScales - 1));
-}
-
-void setDistortion(byte synth, int read) {
-	synths[synth].setDistortion(map(read, 0, 1023, 0, 127));
 }
 
 void onChange(byte pin, int read) {
@@ -136,17 +133,13 @@ void onChange(byte pin, int read) {
 			}
 	}
 
-	if(alt) { //Alt Mode
-		if(sel) setDistortion(synth, read);
-		else setScale(synth, read);
-	} else {
-		if(sel) setChainsaw(synth, read);
-		else setNote(synth, read);
-	}
+	if(sel) {
+		if(alt) setScale(synth, read);
+		else setChainsaw(synth, read);
+	} else setNote(synth, read);
 }
 
-void photoResistor() {
-	int read = analogRead(photoResistorPin);
+void photoResistorOnChange(byte pin, int read) {
 	if(read < 400) { //photoResistor off
 		photoResistorEnabled = 0;
 		if(photoResistorCalibrate) {
@@ -157,10 +150,9 @@ void photoResistor() {
 	}
 	if(photoResistorCalibrate) {
 		photoResistorCalibrateCount++;
-		if(photoResistorCalibrateCount < 150) return;
 		photoResistorMax < read && (photoResistorMax = read);
 		photoResistorMin > read && (photoResistorMin = read);
-		photoResistorCalibrateCount == 1500 && (photoResistorCalibrateCount = photoResistorCalibrate = 0);
+		photoResistorCalibrateCount == 100 && (photoResistorCalibrateCount = photoResistorCalibrate = 0);
 		return;
 	}
 	photoResistorEnabled = 1;

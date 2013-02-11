@@ -24,7 +24,7 @@ prog_uchar Synth::_scales[(Synth::numNotes - 1) * Synth::numScales] PROGMEM = {
 };
 
 Synth::Synth(unsigned int sampleRate, const byte numWaves, const byte waveNoteOffset[]) : _numWaves(numWaves), _waveNoteOffset(waveNoteOffset) {
-	_chainSawTime = _chainSaw = _distortion = 0;
+	_chainSawTime = _chainSaw = 0;
 	_chainSawInterval = _note = 255;
 	setScale(0);
 	for(byte x=0; x<_numWaves; x++) _waves[x] = new TinyWave(sampleRate);
@@ -59,10 +59,6 @@ void Synth::setChainSaw(byte interval) {
 	(interval == 255) && (_chainSaw = 0);
 }
 
-void Synth::setDistortion(byte distortion) {
-	_distortion = distortion;
-}
-
 void Synth::chainSawTick() {
 	if(_chainSawInterval == 255 || _note == 255) return;
 	_chainSawTime++;
@@ -74,6 +70,5 @@ int Synth::output() {
 	if(_chainSaw || _note == 255) return 0;
 	int output = 0;
 	for(byte x=0; x<_numWaves; x++) output += _waves[x]->next();
-	//_distortion && (output += random(_distortion));	
 	return output;
 }

@@ -25,7 +25,7 @@ class Synth {
         int output();
 
         static const byte numNotes = 7,
-            numOctaves = 5,
+            numOctaves = 7,
             numScales = 13;
     private:
         TinyWave * _waves[4];
@@ -35,8 +35,7 @@ class Synth {
 
         byte _note,
             _chainSawInterval,
-            _chainSawTime,
-            _distortion;
+            _chainSawTime;
 
         bool _chainSaw;
 
