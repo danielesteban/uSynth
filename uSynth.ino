@@ -72,7 +72,7 @@ void setup() {
 	randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
 
 	//Set random scale & root on every init.
-	for(x=0; x<numSynths; x++) synths[synth].setScale(random(0, numScales), random(0, numNotes));
+	for(x=0; x<numSynths; x++) synths[x].setScale(random(0, Synth::numScales), random(0, Synth::numNotes));
 
 	DacRegister |= (1 << DacLatchPin);
 	DacRegister |= (1 << DacClockPin);
