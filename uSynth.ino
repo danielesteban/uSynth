@@ -61,12 +61,18 @@ void setup() {
 		serial.begin(19200);
 	#endif
 
-	randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
+	byte x;
 
-	for(byte x=0; x<dipSwitchNum; x++) dipSwitchPort |= (1 << dipSwitchPin - x); //Set Pullups
+	for(x=0; x<dipSwitchNum; x++) dipSwitchPort |= (1 << dipSwitchPin - x); //Set Pullups
+
 	analogInputs.setup(pot1Pin);
 	analogInputs.setup(pot2Pin);
 	analogInputs.setup(photoResistorPin, photoResistorOnChange);
+
+	randomSeed(analogRead(pot1Pin)); //this should be an unused pin.. but there are none left ;P
+
+	//Set random scale & root on every init.
+	for(x=0; x<numSynths; x++) synths[synth].setScale(random(0, numScales), random(0, numNotes));
 
 	DacRegister |= (1 << DacLatchPin);
 	DacRegister |= (1 << DacClockPin);
@@ -102,11 +108,11 @@ void setChainsaw(byte synth, int read) {
 }
 
 void setScale(byte synth, int read) {
-	synths[synth].setScale(map(read, 0, 1023, 0, Synth::numScales - 2), synths[synth].selectedRoot);
+	synths[synth].setScale(map(read, 0, 1023, 0, Synth::numScales - 1), synths[synth].selectedRoot);
 }
 
 void setRoot(byte synth, int read) {
-	synths[synth].setScale(synths[synth].selectedScale, map(read, 0, 1023, 0, 11));
+	synths[synth].setScale(synths[synth].selectedScale, map(read, 0, 1023, 0, Synth::numNotes - 1));
 }
 
 void onChange(byte pin, int read) {
