@@ -35,10 +35,9 @@ const byte synth1NumWaves = 4,
 
 byte synthOn = 0,
 	chainSawTickCount = 0,
-	photoResistorCalibrateCount = 0;
+	photoResistorCalibrate = 0;
 
-bool photoResistorEnabled = 0,
-	photoResistorCalibrate = 1;
+bool photoResistorEnabled = 0;
 
 unsigned int photoResistorMin = 1023,
 	photoResistorMax = 0;
@@ -139,19 +138,15 @@ void onChange(byte pin, int read) {
 }
 
 void photoResistorOnChange(byte pin, int read) {
-	if(read < 400) { //photoResistor off
+	if(read < (photoResistorCalibrate != 255 ? 1 : 200)) {
 		photoResistorEnabled = 0;
-		if(photoResistorCalibrate) {
-			photoResistorMin = 1023;
-			photoResistorMax = photoResistorCalibrateCount = 0;
-		}
 		return;
 	}
-	if(photoResistorCalibrate) {
-		photoResistorCalibrateCount++;
+	if(photoResistorCalibrate != 255) {
+		if(read < 200) return;
+		photoResistorCalibrate++;
 		photoResistorMax < read && (photoResistorMax = read);
 		photoResistorMin > read && (photoResistorMin = read);
-		photoResistorCalibrateCount == 100 && (photoResistorCalibrateCount = photoResistorCalibrate = 0);
 		return;
 	}
 	photoResistorEnabled = 1;
